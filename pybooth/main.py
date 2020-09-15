@@ -1,6 +1,7 @@
 import logging
 import functools
 import argparse
+import multiprocessing
 
 from pynput.keyboard import Listener, Key
 
@@ -12,10 +13,11 @@ def on_press(key):
     pass
 
 
-def on_release(booth: PhotoBooth, key):
+def on_release(listener: Listener, booth: PhotoBooth, key):
     if key != Key.space:
         return
     booth.start_session()
+    listener.stop()  # Ignore keypress that occured while taking pictures
 
 
 def init_logger(args):
@@ -24,13 +26,14 @@ def init_logger(args):
     handler = logging.StreamHandler()
     handler.setLevel(root_logger.level)
     handler.setFormatter(
-        logging.Formatter("%(asctime)s:%(name)s:%(levelname)s:%(message)s")
+        logging.Formatter("%(asctime)s: %(name)s: %(levelname)s:%(message)s")
     )
     root_logger.addHandler(handler)
+    return root_logger
 
 
 def main(args):
-    init_logger(args)
+    logger = init_logger(args)
     booth = PhotoBooth(
         args.composition_background,
         args.captures_dir,
@@ -40,14 +43,21 @@ def main(args):
         args.arduino_tty,
     )
 
-    with Listener(
-        on_press=on_press, on_release=functools.partial(on_release, booth)
-    ) as listener:
-        logging.info("Ready !")
-        if args.web is not None:
-            server = WebServer(port=args.web, pictures_dir=args.compositions_dir)
-            server.start()
+    server_process = None
+    if args.web is not None:
+        server = WebServer(port=args.web, pictures_dir=args.compositions_dir)
+        server_process = multiprocessing.Process(target=server.start)
+        server_process.start()
+
+        logger.info("Waiting for capture trigger...")
+    while True:
+        listener = Listener(on_press=on_press)
+        listener.on_release = functools.partial(on_release, listener, booth)
+        listener.start()
         listener.join()
+
+    if server_process is not None:
+        server_process.join()
 
 
 def parse_args():
