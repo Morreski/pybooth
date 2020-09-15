@@ -18,8 +18,19 @@ def on_release(booth: PhotoBooth, key):
     booth.start_session()
 
 
+def init_logger(args):
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(root_logger.level)
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s:%(name)s:%(levelname)s:%(message)s")
+    )
+    root_logger.addHandler(handler)
+
+
 def main(args):
-    logging.getLogger().setLevel(logging.DEBUG)
+    init_logger(args)
     booth = PhotoBooth(
         args.composition_background,
         args.captures_dir,

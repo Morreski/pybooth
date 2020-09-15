@@ -25,7 +25,6 @@ class PhotoBooth:
         arduino_tty: str = "/dev/ttyACM0",
     ):
         self._logger = logging.getLogger("photobooth")
-        self._logger.setLevel(logging.getLogger().level)
 
         self.captures_dir = captures_dir
         self.compositions_dir = compositions_dir
