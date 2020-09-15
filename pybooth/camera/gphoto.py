@@ -1,4 +1,6 @@
 import os
+import functools
+import time
 import logging
 
 import gphoto2 as gp
@@ -9,14 +11,39 @@ class GphotoCamera:
         self.camera = gp.Camera()
         self.out_dir = out_dir
         self.base_filename = base_filename
-        self.photo_count = 0
-        self.camera.init()
+        self.photo_count = len(os.listdir(out_dir))
+        self._logger = logging.getLogger("gphoto")
+        self.connect()
+
+    def auto_reconnect(f):
+        @functools.wraps(f)
+        def _wrapper(self, *args, **kwargs):
+            while True:
+                try:
+                    return f(self, *args, **kwargs)
+                except gp.GPhoto2Error:
+                    self.connect()
+
+        return _wrapper
+
+    def connect(self):
+        while True:
+            try:
+                self.camera.init()
+                self._logger.info("Camera connected")
+                return
+            except gp.GPhoto2Error:
+                self.reset()
+                self._logger.error(
+                    "Camera is disconnected... Please plug it in (or reboot it if already plugged)"
+                )
+                time.sleep(2)
 
     def reset(self):
         self.camera.exit()
         self.camera = gp.Camera()
-        self.camera.init()
 
+    @auto_reconnect
     def take_picture(self) -> str:
         logging.debug("Taking picture...")
         path = self.camera.capture(gp.GP_CAPTURE_IMAGE)
