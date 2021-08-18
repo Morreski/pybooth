@@ -1,10 +1,11 @@
 const body =  document.getElementsByTagName("body")[0];
-const ws = new WebSocket(`ws://${window.location.host}/pictures`)
+let ws = null;
 let firstImageBatchReceived = false;
 const urls = [];
 let createdImageTags = 0;
 let nextImageCursor = 0;
 const maxImageTags = 4;
+let socketReconnectInterval = null;
 
 function getNextImage() {
     if (nextImageCursor >= urls.length) {
@@ -58,12 +59,31 @@ function displayImagePopin(url) {
     setTimeout(() => {body.removeChild(overlay)}, 10000);
 }
 
-ws.onmessage = function(msg) {
-    for (let imgName of JSON.parse(msg.data)) {
-        url = window.origin + "/pictures/" + imgName
-        urls.push(url)
-        onNewImage(url)
+function connectWebSocket(force) {
+    if (socketReconnectInterval != null) {
+        clearInterval(socketReconnectInterval);
+    } else if (! force) {
+        // There is already a reconnect loop running
+        return
     }
-    firstImageBatchReceived = true;
+    ws = new WebSocket(`ws://${window.location.host}/pictures`);
+    ws.onmessage = function(msg) {
+        for (let imgName of JSON.parse(msg.data)) {
+            url = window.origin + "/pictures/" + imgName
+            urls.push(url)
+            onNewImage(url)
+        }
+        firstImageBatchReceived = true;
+    }
+
+    ws.onopen = function() {
+        socketReconnectInterval = null;
+    }
+
+    ws.onclose = function() {
+        console.error("Websocket disconnected");
+        socketReconnectInterval = setInterval(connectWebSocket.bind(false), 3000)
+    }
 }
 
+connectWebSocket(true)
