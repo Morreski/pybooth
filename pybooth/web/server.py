@@ -12,31 +12,57 @@ class PhotoBoothHandler(tornado.websocket.WebSocketHandler):
     def check_origin(self, origin):
         return True
 
-    def initialize(self, pictures_dir: str):
+    def initialize(self, pictures_dir: str, event_log: str):
         self.pictures_dir = pictures_dir
-        self.pics = set()
-        self.sent_pics = set()
+        self.event_reader = open(event_log, "r")
+        self.event_reader.seek(os.path.getsize(event_log))
+        self.is_alive = True
 
     async def open(self):
-        while True:
-            self.pics = {os.path.basename(f) for f in os.listdir(self.pictures_dir)}
-            await asyncio.sleep(1)
-            self.write_message(json.dumps(list(self.pics - self.sent_pics)))
-            self.sent_pics = self.sent_pics.union(self.pics)
+        await self.send_existing_pics()
+        async for evt in self.get_next_event():
+            self.write_message(evt)
 
-    def notify_game_event(self):
-        pass
+    async def on_close(self):
+        self.is_alive = False
+
+    async def get_next_event(self):
+        while self.is_alive:
+            l = self.event_reader.readline()
+            if l == "":
+                await asyncio.sleep(0.5)
+                continue
+            evt = self.parse_event(l)
+            if evt is None:
+                continue
+            yield evt
+
+    async def send_existing_pics(self):
+        pics = [os.path.basename(f) for f in os.listdir(self.pictures_dir)]
+        await self.write_message(
+            json.dumps({"event": "WEB_INIT", "data": {"pics": pics}})
+        )
+
+    def parse_event(self, evt: str):
+        try:
+            return json.loads(evt)
+        except json.JSONDecodeError:
+            return None
 
     async def on_message(self, message: str):
         pass
 
 
 class WebServer:
-    def __init__(self, port: int, pictures_dir: str):
+    def __init__(self, port: int, pictures_dir: str, event_log: str):
         self.port = port
         self.app = tornado.web.Application(
             [
-                (r"/pictures", PhotoBoothHandler, {"pictures_dir": pictures_dir}),
+                (
+                    r"/ws",
+                    PhotoBoothHandler,
+                    {"pictures_dir": pictures_dir, "event_log": event_log},
+                ),
                 (
                     r"/pictures/(.*)",
                     tornado.web.StaticFileHandler,

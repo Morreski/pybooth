@@ -1,11 +1,42 @@
 const body =  document.getElementsByTagName("body")[0];
 let ws = null;
-let firstImageBatchReceived = false;
 const urls = [];
 let createdImageTags = 0;
 let nextImageCursor = 0;
 const maxImageTags = 4;
 let socketReconnectInterval = null;
+
+const eventHandlers = new Map([
+    [
+        "WEB_INIT", (data) => {
+            urls.splice(0, urls.length)
+            for (let pic of data.pics) {
+                url = window.origin + "/pictures/" + pic
+                urls.push(url)
+                createImageTag(url)
+            }
+        },
+    ],
+    [
+        "COMPOSITION_CREATED", ({path}) => {
+            url = window.origin + "/pictures/" + path.split("/").reverse()[0]
+            urls.push(url)
+            createImageTag(url)
+            displayImagePopin(url)
+        }
+    ],
+    [
+        "CAPTURE_COUNTDOWN", ({timeout}) => {
+            const overlay = document.createElement("div");
+            overlay.classList = ["new-picture-overlay"];
+            const h1 = document.createElement("h1")
+            h1.innerText = "SAY CHEESE"
+            overlay.appendChild(h1)
+            body.appendChild(overlay);
+            setTimeout(() => {body.removeChild(overlay)}, timeout * 1000);
+        }
+    ]
+])
 
 function getNextImage() {
     if (nextImageCursor >= urls.length) {
@@ -39,14 +70,6 @@ function createImageTag(url) {
     }
 }
 
-function onNewImage(url) {
-    if (createdImageTags < maxImageTags) {
-        createImageTag(url)
-    }
-    if (firstImageBatchReceived) {
-        displayImagePopin(url)
-    }
-}
 
 function displayImagePopin(url) {
 
@@ -66,14 +89,12 @@ function connectWebSocket(force) {
         // There is already a reconnect loop running
         return
     }
-    ws = new WebSocket(`ws://${window.location.host}/pictures`);
-    ws.onmessage = function(msg) {
-        for (let imgName of JSON.parse(msg.data)) {
-            url = window.origin + "/pictures/" + imgName
-            urls.push(url)
-            onNewImage(url)
-        }
-        firstImageBatchReceived = true;
+    ws = new WebSocket(`ws://${window.location.host}/ws`);
+    ws.onmessage = function(raw) {
+        const msg = JSON.parse(raw.data);
+        const handler = eventHandlers.get(msg.event);
+        if (!handler) return;
+        handler(msg.data)
     }
 
     ws.onopen = function() {

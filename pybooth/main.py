@@ -34,22 +34,25 @@ def init_logger(args):
 
 def main(args):
     logger = init_logger(args)
+
+    server_process = None
     booth = PhotoBooth(
         args.composition_background,
         args.captures_dir,
         args.compositions_dir,
         args.camera_type,
-        not args.disable_arduino,
-        args.arduino_tty,
+        args.event_log,
     )
 
-    server_process = None
     if args.web is not None:
-        server = WebServer(port=args.web, pictures_dir=args.compositions_dir)
+        server = WebServer(
+            port=args.web, pictures_dir=args.compositions_dir, event_log=args.event_log
+        )
         server_process = multiprocessing.Process(target=server.start)
         server_process.start()
 
-        logger.info("Waiting for capture trigger...")
+    logger.info("Waiting for capture trigger...")
+
     while True:
         listener = Listener(on_press=on_press)
         listener.on_release = functools.partial(on_release, listener, booth)
@@ -82,25 +85,24 @@ def parse_args():
         help="Directory where compositions will be stored",
     )
     parser.add_argument(
-        "--camera-type",
+        "--camera_type",
         metavar="VALUE",
         choices=("gphoto", "dummy"),
         default="gphoto",
         help="Camera backend to use",
     )
     parser.add_argument(
-        "--disable-arduino",
-        action="store_true",
-        help="Use this flag to run without arduino board",
+        "--event_log",
+        "-e",
+        metavar="PATH",
+        default="./booth_events.log",
+        help="Append only event log path",
     )
     parser.add_argument(
-        "--arduino-tty",
-        metavar="TTY",
-        default="/dev/ttyACM0",
-        help="Serial port used to communicate with Arduino board",
-    )
-    parser.add_argument(
-        "--web", metavar="PORT", type=int, help="Start webserver on specified port",
+        "--web",
+        metavar="PORT",
+        type=int,
+        help="Start webserver on specified port",
     )
     return parser.parse_args()
 
