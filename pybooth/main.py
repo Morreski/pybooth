@@ -36,6 +36,13 @@ def main(args):
     logger = init_logger(args)
 
     server_process = None
+    if args.web is not None:
+        server = WebServer(
+            port=args.web, pictures_dir=args.compositions_dir, event_log=args.event_log
+        )
+        server_process = multiprocessing.Process(target=server.start)
+        server_process.start()
+
     booth = PhotoBooth(
         args.composition_background,
         args.captures_dir,
@@ -43,13 +50,6 @@ def main(args):
         args.camera_type,
         args.event_log,
     )
-
-    if args.web is not None:
-        server = WebServer(
-            port=args.web, pictures_dir=args.compositions_dir, event_log=args.event_log
-        )
-        server_process = multiprocessing.Process(target=server.start)
-        server_process.start()
 
     logger.info("Waiting for capture trigger...")
 

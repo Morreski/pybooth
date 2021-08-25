@@ -1,11 +1,11 @@
 import enum
 import os
 import time
-import json
 import logging
 
 from camera import GphotoCamera, DummyCamera
 from compositions import BasicComposition
+from event_log import EventLog
 
 
 class PhotoBoothState(enum.Enum):
@@ -21,7 +21,7 @@ class PhotoBooth:
         captures_dir: str = "./captures",
         compositions_dir: str = "./compositions",
         camera_type: str = "gphoto",
-        event_log: str = "/dev/null",
+        event_log_path: str = "/dev/null",
     ):
         self._logger = logging.getLogger("photobooth")
 
@@ -32,16 +32,17 @@ class PhotoBooth:
         os.makedirs(self.compositions_dir, exist_ok=True)
 
         self.session_count = len(os.listdir(compositions_dir))
-        self.camera = self.get_camera_backend(camera_type)(self.captures_dir)
         self.seconds_before_session = 5
         self.seconds_between_captures = 1
         self.captures_per_session = 6
         self.composition = BasicComposition(composition_background)
-        self.event_log_path = event_log
-        self.event_log = None
+        self.event_log = EventLog(event_log_path)
 
         self._state = PhotoBoothState.IDLE
-        self.notify("HELLO", {})
+        self.event_log.notify("HELLO", {})
+        self.camera = self.get_camera_backend(camera_type)(
+            self.event_log, self.captures_dir
+        )
 
     def get_camera_backend(self, name: str):
         camera_mapping = {
@@ -66,7 +67,7 @@ class PhotoBooth:
             )
 
         self._state = state
-        self.notify(
+        self.event_log.notify(
             "BOOTH_STATE_CHANGED",
             {"old_state": self._state.value, "new_state": state.value},
         )
@@ -80,7 +81,7 @@ class PhotoBooth:
         self.session_count += 1
         self.state = PhotoBoothState.SESSION_STARTED
         pics = []
-        self.notify(
+        self.event_log.notify(
             "CAPTURE_COUNTDOWN",
             {
                 "timeout": self.seconds_before_session,
@@ -89,7 +90,7 @@ class PhotoBooth:
         time.sleep(self.seconds_before_session)
 
         for i in range(self.captures_per_session):
-            self.notify(
+            self.event_log.notify(
                 "CAPTURE_START",
                 {
                     "timeout": self.seconds_between_captures,
@@ -104,18 +105,6 @@ class PhotoBooth:
         self.state = PhotoBoothState.COMPOSING
         composition_path = self.get_composition_path()
         self.composition.compose(pics, composition_path)
-        self.notify("COMPOSITION_CREATED", {"path": composition_path})
+        self.event_log.notify("COMPOSITION_CREATED", {"path": composition_path})
 
         self.state = PhotoBoothState.IDLE
-
-    def notify(self, event_name: str, data: dict):
-        if self.event_log is None or self.event_log.closed:
-            self.reopen_event_log()
-
-        self._logger.info(f"NOTIFY: {self.event_log_path}")
-        json.dump({"event": event_name, "data": data}, self.event_log)
-        self.event_log.write(os.linesep)
-        self.event_log.flush()
-
-    def reopen_event_log(self):
-        self.event_log = open(self.event_log_path, "a")

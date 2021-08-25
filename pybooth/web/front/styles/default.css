@@ -27,3 +27,18 @@ img {
   align-content: ;
   align-items: center;
 }
+
+.error-overlay {
+  background-color: #00000088;
+  color: white;
+  top: 0px;
+  left: 0px;
+  position: fixed;
+  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-content: ;
+  align-items: center;
+}

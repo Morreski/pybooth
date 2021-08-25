@@ -36,6 +36,16 @@ const eventHandlers = new Map([
             body.appendChild(overlay);
             setTimeout(() => {body.removeChild(overlay)}, timeout * 1000);
         }
+    ],
+    [
+        "CAMERA_CONNECTED", () => {
+            setCameraState({connected: true})
+        }
+    ],
+    [
+        "CAMERA_DISCONNECTED", () => {
+            setCameraState({connected: false})
+        }
     ]
 ])
 
@@ -64,17 +74,13 @@ function onImageLeave(evt) {
 function clearImageTags() {
     createdImageTags = 0;
     nextImageCursor = 0;
-    const tags = Array.from(document.getElementsByClassName("booth-composition"))
-    for (const tag of tags) {
-        tag.parentNode.removeChild(tag);
-        console.log(tag);
-    }
+    deleteElementsByClassName('booth-composition');
 }
 
 function createImageTag(url) {
     const img = document.createElement("img");
     img.src = getNextImage();
-    img.classList = ["booth-composition"];
+    img.classList.add("booth-composition");
     body.appendChild(img);
     createdImageTags++;
     if (createdImageTags >= maxImageTags) {
@@ -84,9 +90,8 @@ function createImageTag(url) {
 
 
 function displayImagePopin(url) {
-
     const overlay = document.createElement("div");
-    overlay.classList = ["new-picture-overlay"];
+    overlay.classList.add("new-picture-overlay");
     const img = document.createElement("img");
     img.src = url;
     overlay.appendChild(img);
@@ -116,6 +121,27 @@ function connectWebSocket(force) {
     ws.onclose = function() {
         console.error("Websocket disconnected");
         socketReconnectInterval = setInterval(connectWebSocket.bind(false), 3000)
+    }
+}
+
+function setCameraState({connected}) {
+    console.log("CAMERA", connected)
+    if (!connected) {
+        const overlay = document.createElement("div");
+        overlay.classList.add("error-overlay", "disconnected-camera");
+        const h1 = document.createElement("h1");
+        h1.innerText = "CAMERA DISCONNECTED";
+        overlay.appendChild(h1);
+        body.appendChild(overlay);
+    } else {
+        deleteElementsByClassName("disconnected-camera");
+    }
+}
+
+function deleteElementsByClassName(cls) {
+    const tags = Array.from(document.getElementsByClassName(cls));
+    for (const tag of tags) {
+        tag.parentNode.removeChild(tag);
     }
 }
 
