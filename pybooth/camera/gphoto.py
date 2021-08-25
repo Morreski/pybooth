@@ -61,7 +61,7 @@ class GphotoCamera:
         pic_name = self.get_next_picture_name()
         pic_path = os.path.join(self.out_dir, pic_name)
         pic.save(pic_path)
-        logging.debug(f"Image saved: {pic_path}")
+        self.event_log.notify("CAPTURE_TAKEN", {"path": pic_path})
         return pic_path
 
     def get_next_picture_name(self) -> str:

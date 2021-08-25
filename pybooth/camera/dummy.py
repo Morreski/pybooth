@@ -24,10 +24,12 @@ class DummyCamera:
         self.fake_connect()
 
     def take_picture(self) -> str:
-        return next(self.jpg_iterator)
+        pic_path = next(self.jpg_iterator)
+        self.event_log.notify("CAPTURE_TAKEN", {"path": pic_path})
+        return pic_path
 
     def fake_connect(self):
-        time.sleep(4)
+        time.sleep(2)
         self.event_log.notify("CAMERA_DISCONNECTED", {})
-        time.sleep(6)
+        time.sleep(2)
         self.event_log.notify("CAMERA_CONNECTED", {})

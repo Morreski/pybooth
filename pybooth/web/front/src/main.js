@@ -20,21 +20,16 @@ const eventHandlers = new Map([
     ],
     [
         "COMPOSITION_CREATED", ({path}) => {
-            url = window.origin + "/pictures/" + path.split("/").reverse()[0]
-            urls.push(url)
-            createImageTag(url)
-            displayImagePopin(url)
+            url = window.origin + "/pictures/" + path.split("/").reverse()[0];
+            urls.push(url);
+            createImageTag(url);
+            deleteElementsByClassName("countdown-overlay");
+            displayImagePopin(url);
         }
     ],
     [
         "CAPTURE_COUNTDOWN", ({timeout}) => {
-            const overlay = document.createElement("div");
-            overlay.classList = ["new-picture-overlay"];
-            const h1 = document.createElement("h1")
-            h1.innerText = "SAY CHEESE"
-            overlay.appendChild(h1)
-            body.appendChild(overlay);
-            setTimeout(() => {body.removeChild(overlay)}, timeout * 1000);
+            showCaptureCountdown(timeout)
         }
     ],
     [
@@ -125,7 +120,6 @@ function connectWebSocket(force) {
 }
 
 function setCameraState({connected}) {
-    console.log("CAMERA", connected)
     if (!connected) {
         const overlay = document.createElement("div");
         overlay.classList.add("error-overlay", "disconnected-camera");
@@ -145,4 +139,19 @@ function deleteElementsByClassName(cls) {
     }
 }
 
-connectWebSocket(true)
+function showCaptureCountdown(timeout) {
+    const overlay = document.createElement("div");
+    overlay.classList = ["countdown-overlay"];
+    const h1 = document.createElement("h1");
+    overlay.appendChild(h1);
+    const progress = document.createElement("div");
+    progress.classList.add("capture-timer-progress", "demo")
+    const inner = document.createElement("div");
+    inner.classList.add("progress-inner");
+    inner.style.animation = `progres ${timeout}s 1 linear`
+    progress.appendChild(inner);
+    overlay.appendChild(progress);
+    body.appendChild(overlay);
+}
+
+connectWebSocket(true);

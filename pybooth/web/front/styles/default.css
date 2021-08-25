@@ -1,9 +1,12 @@
 body {
+  font-family: Helvetica;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   display: flex;
   flex-wrap: nowrap;
+  background-color: #fbf1c7;
+  color: #282828;
 }
 
 img {
@@ -14,8 +17,7 @@ img {
 }
 
 .new-picture-overlay {
-  background-color: #d9afd9;
-  background-image: linear-gradient(0deg, #d9afd9 0%, #97d9e1 100%);
+  background-color: #fbf1c7;
   top: 0px;
   left: 0px;
   position: fixed;
@@ -24,8 +26,12 @@ img {
   height: 100vh;
   display: flex;
   justify-content: center;
-  align-content: ;
   align-items: center;
+}
+
+.new-picture-overlay img {
+    object-fit: contain;
+    animation: 1s cubic-bezier(.65,.05,.36,1) 0s 1 normal forwards running discover_image_h, 1s cubic-bezier(.65,.05,.36,1) 1s 1 normal forwards running discover_image_w;
 }
 
 .error-overlay {
@@ -39,6 +45,91 @@ img {
   height: 100vh;
   display: flex;
   justify-content: center;
-  align-content: ;
   align-items: center;
+}
+
+.countdown-overlay {
+  background-color: #fbf1c7;
+  top: 0px;
+  left: 0px;
+  position: fixed;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.capture-timer-progress{
+    height: 10px;
+    width: 40%;
+    border: 10px solid #458588;
+    border-radius: 15px;
+}
+
+.countdown-overlay h1:before {
+    white-space: nowrap;
+    content: "Ready";
+    animation: 0.7s cubic-bezier(.22,.61,.36,1) 0s 1 normal forwards running ready_text, 0.7s cubic-bezier(.22,.61,.36,1) 3s 1 reverse forwards running ready_text, 0.7s cubic-bezier(.22,.61,.36,1) 4s 1 normal forwards running cheese_text;
+
+}
+
+.progress-inner{
+    background-color: #282828;
+    width: 0px;
+    height: 10px;
+    border-radius: 15px;
+}
+
+@keyframes progres {
+    0%{
+      width: 100%;
+    }
+    100%{
+      width: 0%;
+    }
+}
+
+@keyframes ready_text {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+    content: "Prêts ?";
+  }
+  100% {
+    letter-spacing: inherit;
+    opacity: 1;
+    content: "Prêts ?";
+  }
+}
+
+@keyframes cheese_text {
+  0% {
+    letter-spacing: -0.5em;
+    opacity: 0;
+    content: "Souriez !";
+  }
+  100% {
+    letter-spacing: inherit;
+    opacity: 1;
+    content: "Souriez !";
+  }
+}
+
+@keyframes discover_image_h {
+  0% {
+    transform: scale(0.3, 0.1);
+  }
+  100% {
+    transform: scale(0.3,1);
+  }
+}
+
+@keyframes discover_image_w {
+
+  100% {
+    transform: scale(1, 1);
+  }
 }
