@@ -9,6 +9,7 @@ let socketReconnectInterval = null;
 const eventHandlers = new Map([
     [
         "WEB_INIT", (data) => {
+            clearImageTags();
             urls.splice(0, urls.length)
             for (let pic of data.pics) {
                 url = window.origin + "/pictures/" + pic
@@ -60,9 +61,20 @@ function onImageLeave(evt) {
     slide();
 }
 
+function clearImageTags() {
+    createdImageTags = 0;
+    nextImageCursor = 0;
+    const tags = Array.from(document.getElementsByClassName("booth-composition"))
+    for (const tag of tags) {
+        tag.parentNode.removeChild(tag);
+        console.log(tag);
+    }
+}
+
 function createImageTag(url) {
     const img = document.createElement("img");
     img.src = getNextImage();
+    img.classList = ["booth-composition"];
     body.appendChild(img);
     createdImageTags++;
     if (createdImageTags >= maxImageTags) {
