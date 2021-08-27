@@ -24,7 +24,13 @@ const eventHandlers = new Map([
             urls.push(url);
             createImageTag(url);
             deleteElementsByClassName("countdown-overlay");
+            deleteElementsByClassName("capture-counter-overlay");
             displayImagePopin(url);
+        }
+    ],
+    [
+        "CAPTURE_START", (data) => {
+            showCaptureCounter(data)
         }
     ],
     [
@@ -149,8 +155,20 @@ function showCaptureCountdown(timeout) {
     const inner = document.createElement("div");
     inner.classList.add("progress-inner");
     inner.style.animation = `progres ${timeout}s 1 linear`
+    overlay.style.animation = `0.7s linear ${timeout}s 1 normal forwards running fadeout`
     progress.appendChild(inner);
     overlay.appendChild(progress);
+    body.appendChild(overlay);
+}
+
+
+function showCaptureCounter({capture_number, captures_max}) {
+    deleteElementsByClassName("capture-counter-overlay");
+    const overlay = document.createElement("div");
+    overlay.classList = ["capture-counter-overlay"];
+    const h1 = document.createElement("h1");
+    h1.innerText = `${capture_number + 1} / ${captures_max}`;
+    overlay.appendChild(h1);
     body.appendChild(overlay);
 }
 
