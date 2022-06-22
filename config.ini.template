@@ -1,0 +1,18 @@
+[Output]
+base_dir=./booth
+#original_captures_folder_name=pictures
+#compositions_folder_name=compositions
+
+[Composition.default]
+background_image=
+
+[Camera]
+# Engine must be one of: 'gphoto', 'dummy'
+engine=gphoto
+
+[Events]
+log_path=/tmp/booth_event.log
+
+[Webserver]
+enabled=false
+#port=1502

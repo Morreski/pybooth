@@ -2,6 +2,7 @@ import enum
 import os
 import time
 import logging
+from typing import Optional
 
 from camera import GphotoCamera, DummyCamera
 from compositions import BasicComposition
@@ -17,7 +18,7 @@ class PhotoBoothState(enum.Enum):
 class PhotoBooth:
     def __init__(
         self,
-        composition_background: str,
+        composition_background: Optional[str] = None,
         captures_dir: str = "./captures",
         compositions_dir: str = "./compositions",
         camera_type: str = "gphoto",
@@ -35,7 +36,11 @@ class PhotoBooth:
         self.seconds_before_session = 5
         self.seconds_between_captures = 1
         self.captures_per_session = 6
-        self.composition = BasicComposition(composition_background)
+        self.composition = composition_background and BasicComposition(
+            composition_background
+        )
+        if not self.composition:
+            self._logger.info("Compositions are disabled")
         self.event_log = EventLog(event_log_path)
 
         self._state = PhotoBoothState.IDLE
@@ -102,9 +107,10 @@ class PhotoBooth:
             time.sleep(self.seconds_between_captures)
             pics.append(self.camera.take_picture())
 
-        self.state = PhotoBoothState.COMPOSING
-        composition_path = self.get_composition_path()
-        self.composition.compose(pics, composition_path)
-        self.event_log.notify("COMPOSITION_CREATED", {"path": composition_path})
+        if self.composition is not None:
+            self.state = PhotoBoothState.COMPOSING
+            composition_path = self.get_composition_path()
+            self.composition.compose(pics, composition_path)
+            self.event_log.notify("COMPOSITION_CREATED", {"path": composition_path})
 
         self.state = PhotoBoothState.IDLE

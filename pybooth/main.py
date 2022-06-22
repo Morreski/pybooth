@@ -1,10 +1,10 @@
 import logging
 import functools
-import argparse
 import multiprocessing
 
 from pynput.keyboard import Listener, Key
 
+from config import Config
 from web import WebServer
 from booth import PhotoBooth
 
@@ -32,23 +32,25 @@ def init_logger(args):
     return root_logger
 
 
-def main(args):
-    logger = init_logger(args)
+def main(cfg: Config):
+    logger = init_logger(cfg)
 
     server_process = None
-    if args.web is not None:
+    if cfg.webserver_enabled:
         server = WebServer(
-            port=args.web, pictures_dir=args.compositions_dir, event_log=args.event_log
+            port=cfg.webserver_port,
+            pictures_dir=cfg.compositions_dest_dir,
+            event_log=cfg.events_log_path,
         )
         server_process = multiprocessing.Process(target=server.start)
         server_process.start()
 
     booth = PhotoBooth(
-        args.composition_background,
-        args.captures_dir,
-        args.compositions_dir,
-        args.camera_type,
-        args.event_log,
+        cfg.composition_background,
+        cfg.captures_dest_dir,
+        cfg.compositions_dest_dir,
+        cfg.camera_type,
+        cfg.events_log_path,
     )
 
     logger.info("Waiting for capture trigger...")
@@ -63,50 +65,6 @@ def main(args):
         server_process.join()
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "composition_background",
-        metavar="FILE",
-        help="Image used as background for composition",
-    )
-    parser.add_argument(
-        "--captures_dir",
-        "-O",
-        metavar="PATH",
-        default="./captures",
-        help="Directory where pictures will be stored",
-    )
-    parser.add_argument(
-        "--compositions_dir",
-        "-o",
-        metavar="PATH",
-        default="./compositions",
-        help="Directory where compositions will be stored",
-    )
-    parser.add_argument(
-        "--camera_type",
-        metavar="VALUE",
-        choices=("gphoto", "dummy"),
-        default="gphoto",
-        help="Camera backend to use",
-    )
-    parser.add_argument(
-        "--event_log",
-        "-e",
-        metavar="PATH",
-        default="./booth_events.log",
-        help="Append only event log path",
-    )
-    parser.add_argument(
-        "--web",
-        metavar="PORT",
-        type=int,
-        help="Start webserver on specified port",
-    )
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    config = Config.from_program_args()
+    main(config)
