@@ -140,6 +140,7 @@ dmypy.json
 .pytype/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,arduino,javascript
+#
 backgrounds/
-compositions/
+/compositions/
 config.ini
