@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Iterable
+from typing import List
 
 
 @dataclasses.dataclass
@@ -44,4 +44,9 @@ class CaptureLayer(Layer):
 class CompositionSpec:
     name: str
     canvas: Canvas
-    layers: Iterable[Layer]
+    layers: List[Layer]
+
+    captures_count: int = dataclasses.field(init=False, repr=False)
+
+    def __post_init__(self):
+        self.captures_count = len([l for l in self.layers if l.kind == "capture"])

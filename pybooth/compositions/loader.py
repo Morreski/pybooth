@@ -1,10 +1,11 @@
 import yaml
+from dacite import from_dict
 
 from . import CompositionSpec
 
 
 def load_composition(spec: dict) -> CompositionSpec:
-    return CompositionSpec(**spec)
+    return from_dict(data_class=CompositionSpec, data=spec)
 
 
 def load_yaml(path: str) -> CompositionSpec:

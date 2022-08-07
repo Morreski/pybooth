@@ -6,33 +6,33 @@ canvas:
 layers:
   - name: grass_1
     kind: image
-    box: [0, 0.9, 0.333, 1]
+    box: {xmin: 0, ymin: 0.9, xmax: 0.333, ymax: 1}
     src: photomaton_herbe.png
   - name: grass_2
     kind: image
-    box: [0.333, 0.9, 0.666, 1]
+    box: {xmin: 0.333, ymin: 0.9, xmax: 0.666, ymax: 1}
     src: photomaton_herbe.png
   - name: grass_3
     kind: image
-    box: [0.666, 0.9, 1, 1]
+    box: {xmin: 0.666, ymin: 0.9, xmax: 1, ymax: 1}
     src: photomaton_herbe.png
   - name: slot_1
     kind: capture
-    box: [0.1, 0.05, 0.5, 0.5]
+    box: {xmin: 0.1, ymin: 0.05, xmax: 0.5, ymax: 0.5}
   - name: slot_2
     kind: capture
-    box: [0.6, 0.05, 0.9, 0.5]
+    box: {xmin: 0.6, ymin: 0.05, xmax: 0.9, ymax: 0.5}
   - name: slot_3
     kind: capture
-    box: [0.1, 0.6, 0.5, 0.9]
+    box: {xmin: 0.1, ymin: 0.6, xmax: 0.5, ymax: 0.9}
   - name: slot_3
     kind: capture
-    box: [0.6, 0.6, 0.9, 0.9]
+    box: {xmin: 0.6, ymin: 0.6, xmax: 0.9, ymax: 0.9}
   - name: flags
     kind: image
     src: fanions.png
-    box: [0, 0, 0.25, 0.1]
+    box: {xmin: 0, ymin: 0, xmax: 0.25, ymax: 0.1}
   - name: logo
     kind: image
     src: 'PHOTOMATON_LOGO ROND_transparent_bg.png'
-    box: [0.9, 0.9, 1, 1]
+    box: {xmin: 0.9, ymin: 0.9, xmax: 1, ymax: 1}

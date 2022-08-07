@@ -5,3 +5,4 @@ pyserial==3.4
 tornado==6.0.4
 pytest==7.1.2
 PyYAML==6.0
+dacite==1.6.0
