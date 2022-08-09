@@ -5,8 +5,8 @@ from typing import List
 @dataclasses.dataclass
 class Box:
     xmin: float
-    xmax: float
     ymin: float
+    xmax: float
     ymax: float
 
 
@@ -33,11 +33,12 @@ class Layer:
 @dataclasses.dataclass
 class ImageLayer(Layer):
     src: str
+    fit: str = "contain"  # One of 'contain', 'cover', 'fill', 'none', 'scale-down'
 
 
 @dataclasses.dataclass
-class CaptureLayer(Layer):
-    pass
+class CaptureLayer(ImageLayer):
+    src: str = dataclasses.field(default=None)
 
 
 @dataclasses.dataclass
