@@ -4,9 +4,12 @@ import copy
 import itertools
 from typing import Iterable
 
-from PIL import Image
+from PIL import Image, ImageFile
 
 from . import CompositionSpec, Layer, Box, PxBox, ImageLayer, CaptureLayer
+
+# Prevent bug if images are truncated on disk for some reason
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class PILRenderer:
@@ -31,17 +34,19 @@ class PILRenderer:
 
     def _add_layer(self, composition: Image, layer: Layer):
         box = self._get_box_coords_px(layer.box)
-        layer_img = Image.new("RGBA", (box.width, box.height))
+        layer_img = Image.new("RGBA", (box.width, box.height), layer.background_color)
+        layer_img.putalpha(layer.background_opacity)
         compute_func = getattr(
             self,
             f"_compute_{layer.kind}_layer",
             functools.partial(self.__compute_unknown_layer, layer.kind),
         )
         compute_func(layer_img, layer)
-        composition.paste(layer_img, (box.xmin, box.ymin))
+        composition.paste(layer_img, (box.xmin, box.ymin), layer_img)
 
     def _compute_image_layer(self, layer_img: Image, layer: ImageLayer):
         img = Image.open(layer.src)
+        img = img.convert("RGBA")
         fit_func = getattr(
             self,
             f"_compute_fit_{layer.fit}",
@@ -54,7 +59,8 @@ class PILRenderer:
             box_center[0] - math.floor(img.width / 2),
             box_center[1] - math.floor(img.height / 2),
         )
-        layer_img.paste(img, image_coords)
+        img.putalpha(layer.opacity)
+        layer_img.paste(img, image_coords, img)
 
     def _compute_capture_layer(self, layer_img: Image, layer: CaptureLayer):
         layer = copy.deepcopy(layer)

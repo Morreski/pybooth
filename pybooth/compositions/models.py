@@ -1,5 +1,7 @@
 import dataclasses
-from typing import List
+from typing import List, Union
+
+import dacite
 
 
 @dataclasses.dataclass
@@ -39,24 +41,33 @@ class Canvas:
 class Layer:
     kind: str
     box: Box
+    background_color: str = "white"
+    background_opacity: Union[int, float] = 0
+    opacity: Union[int, float] = 255
+
+    def __post_init__(self):
+        if isinstance(self.background_opacity, float):
+            self.background_opacity = min(round(255 * self.background_opacity), 255)
+        if isinstance(self.opacity, float):
+            self.opacity = min(round(255 * self.opacity), 255)
 
     @classmethod
     def new(cls, fields: dict):
         _mapping = {"image": ImageLayer, "capture": CaptureLayer}
         if fields.get("kind") not in _mapping:
             raise ValueError(f"Unknown Layer kind: {fields.get('kind')}")
-        return _mapping[fields.get("kind")](**fields)
+        return dacite.from_dict(data_class=_mapping[fields.get("kind")], data=fields)
 
 
 @dataclasses.dataclass
 class ImageLayer(Layer):
-    src: str
+    src: str = None
     fit: str = "contain"  # One of 'contain', 'cover', 'fill'
 
 
 @dataclasses.dataclass
 class CaptureLayer(ImageLayer):
-    src: str = dataclasses.field(default=None)
+    src: str = None
 
 
 @dataclasses.dataclass

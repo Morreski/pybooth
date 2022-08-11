@@ -18,6 +18,8 @@ def test_composition_rendering():
                     "box": Box(0.4, 0, 0.6, 1),
                     "src": "tests/assets/lenna.png",
                     "fit": "cover",
+                    "background_opacity": 0.7,
+                    "opacity": 0.7,
                 }
             ),
             Layer.new(
@@ -26,10 +28,17 @@ def test_composition_rendering():
                     "box": Box(0.05, 0.5, 0.35, 0.7),
                     "src": "tests/assets/lenna.png",
                     "fit": "contain",
+                    "background_opacity": 128,
+                    "opacity": 0.9,
+                    "background_color": "#cc241d",
                 }
             ),
             Layer.new(
-                {"kind": "capture", "box": Box(0.1, 0.1, 0.35, 0.45), "fit": "fill"}
+                {
+                    "kind": "capture",
+                    "box": Box(0.1, 0.1, 0.35, 0.45),
+                    "fit": "fill",
+                }
             ),
         ],
     )
