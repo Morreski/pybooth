@@ -15,12 +15,21 @@ def test_composition_rendering():
             Layer.new(
                 {
                     "kind": "image",
-                    "box": Box(0.2, 0.2, 0.8, 0.8),
+                    "box": Box(0.4, 0, 0.6, 1),
                     "src": "tests/assets/lenna.png",
+                    "fit": "cover",
                 }
             ),
             Layer.new(
-                {"kind": "capture", "box": Box(0.1, 0.1, 0.2, 0.2), "fit": "fill"}
+                {
+                    "kind": "image",
+                    "box": Box(0.05, 0.5, 0.35, 0.7),
+                    "src": "tests/assets/lenna.png",
+                    "fit": "contain",
+                }
+            ),
+            Layer.new(
+                {"kind": "capture", "box": Box(0.1, 0.1, 0.35, 0.45), "fit": "fill"}
             ),
         ],
     )

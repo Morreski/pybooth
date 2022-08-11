@@ -9,6 +9,24 @@ class Box:
     xmax: float
     ymax: float
 
+    width: float = dataclasses.field(init=False)
+    height: float = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        self.width = self.xmax - self.xmin
+        self.height = self.ymax - self.ymin
+
+
+@dataclasses.dataclass
+class PxBox(Box):
+    xmin: int
+    ymin: int
+    xmax: int
+    ymax: int
+
+    width: int = dataclasses.field(init=False)
+    height: int = dataclasses.field(init=False)
+
 
 @dataclasses.dataclass
 class Canvas:
@@ -33,7 +51,7 @@ class Layer:
 @dataclasses.dataclass
 class ImageLayer(Layer):
     src: str
-    fit: str = "contain"  # One of 'contain', 'cover', 'fill', 'none', 'scale-down'
+    fit: str = "contain"  # One of 'contain', 'cover', 'fill'
 
 
 @dataclasses.dataclass
