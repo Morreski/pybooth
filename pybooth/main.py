@@ -46,7 +46,7 @@ def main(cfg: Config):
         server_process.start()
 
     booth = PhotoBooth(
-        cfg.composition_background,
+        cfg.composition_yaml_path,
         cfg.captures_dest_dir,
         cfg.compositions_dest_dir,
         cfg.camera_type,

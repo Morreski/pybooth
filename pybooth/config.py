@@ -11,7 +11,7 @@ class Config:
     compositions_folder_name: str
     original_captures_folder_name: str
 
-    composition_background: str
+    composition_yaml_path: str
     events_log_path: str
 
     camera_type: str
@@ -51,8 +51,8 @@ class Config:
             original_captures_folder_name=cfg.get(
                 "Output", "compositions_folder_name", fallback="pictures"
             ),
-            composition_background=args.composition
-            or cfg.get(composition, "background_image", fallback="")
+            composition_yaml_path=args.composition
+            or cfg.get(composition, "yaml_path", fallback="")
             or None,
             camera_type=args.camera_type
             or cfg.get("Camera", "engine", fallback="gphoto"),

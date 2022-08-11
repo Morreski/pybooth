@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 
 from camera import GphotoCamera, DummyCamera
-from compositions import BasicComposition
+from compositions import loader, renderer
 from event_log import EventLog
 
 
@@ -18,7 +18,7 @@ class PhotoBoothState(enum.Enum):
 class PhotoBooth:
     def __init__(
         self,
-        composition_background: Optional[str] = None,
+        composition_yaml_path: Optional[str] = None,
         captures_dir: str = "./captures",
         compositions_dir: str = "./compositions",
         camera_type: str = "gphoto",
@@ -35,12 +35,14 @@ class PhotoBooth:
         self.session_count = len(os.listdir(compositions_dir))
         self.seconds_before_session = 5
         self.seconds_between_captures = 1
-        self.captures_per_session = 6
-        self.composition = composition_background and BasicComposition(
-            composition_background
+        self.composition_spec = composition_yaml_path and loader.load_yaml(
+            composition_yaml_path
         )
-        if not self.composition:
+        if not self.composition_spec:
             self._logger.info("Compositions are disabled")
+            self.captures_per_session = 1
+        else:
+            self.captures_per_session = self.composition_spec.captures_count
         self.event_log = EventLog(event_log_path)
 
         self._state = PhotoBoothState.IDLE
@@ -107,10 +109,14 @@ class PhotoBooth:
             time.sleep(self.seconds_between_captures)
             pics.append(self.camera.take_picture())
 
-        if self.composition is not None:
+        if self.composition_spec is not None:
             self.state = PhotoBoothState.COMPOSING
+            comp_renderer = renderer.PILRenderer(
+                self.composition_spec, captures_path=pics
+            )
             composition_path = self.get_composition_path()
-            self.composition.compose(pics, composition_path)
+            composition = comp_renderer.render()
+            composition.save(composition_path)
             self.event_log.notify("COMPOSITION_CREATED", {"path": composition_path})
 
         self.state = PhotoBoothState.IDLE
