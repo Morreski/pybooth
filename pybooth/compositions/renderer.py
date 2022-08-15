@@ -56,11 +56,11 @@ class PILRenderer:
         img = fit_func(box, img)
         box_center = math.floor(box.width / 2), math.floor(box.height // 2)
         image_coords = (
-            box_center[0] - math.floor(img.width / 2),
-            box_center[1] - math.floor(img.height / 2),
+            max(0, box_center[0] - math.floor(img.width / 2)),
+            max(0, box_center[1] - math.floor(img.height / 2)),
         )
-        img.putalpha(layer.opacity)
-        layer_img.paste(img, image_coords, img)
+        layer_img.alpha_composite(img, image_coords)
+        self._mul_transparency(layer_img, 255)
 
     def _compute_capture_layer(self, layer_img: Image, layer: CaptureLayer):
         layer = copy.deepcopy(layer)
@@ -103,3 +103,9 @@ class PILRenderer:
 
     def __compute_unknown_fit(self, fit_value: str, *args, **kwargs):
         raise ValueError(f"Bad value for fit: {fit_value}")
+
+    def _mul_transparency(self, image: Image, value: int):
+        """value must be between 0 and 255"""
+        image.putdata(
+            [(r, g, b, round(a * value / 255)) for r, g, b, a in image.getdata()]
+        )
