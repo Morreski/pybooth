@@ -2,6 +2,7 @@ import functools
 import math
 import copy
 import itertools
+import logging
 from typing import Iterable
 
 from PIL import Image, ImageFile
@@ -10,6 +11,7 @@ from . import CompositionSpec, Layer, Box, PxBox, ImageLayer, CaptureLayer
 
 # Prevent bug if images are truncated on disk for some reason
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL + 1)
 
 
 class PILRenderer:
@@ -42,6 +44,7 @@ class PILRenderer:
             functools.partial(self.__compute_unknown_layer, layer.kind),
         )
         compute_func(layer_img, layer)
+        layer_img = layer_img.rotate(layer.rotation, expand=True)
         composition.paste(layer_img, (box.xmin, box.ymin), layer_img)
 
     def _compute_image_layer(self, layer_img: Image, layer: ImageLayer):
@@ -60,7 +63,7 @@ class PILRenderer:
             max(0, box_center[1] - math.floor(img.height / 2)),
         )
         layer_img.alpha_composite(img, image_coords)
-        self._mul_transparency(layer_img, 255)
+        self._mul_transparency(layer_img, layer.opacity)
 
     def _compute_capture_layer(self, layer_img: Image, layer: CaptureLayer):
         layer = copy.deepcopy(layer)

@@ -4,6 +4,7 @@ import time
 import logging
 from typing import Optional
 
+from PIL import Image
 from camera import GphotoCamera, DummyCamera
 from compositions import loader, renderer
 from event_log import EventLog
@@ -23,18 +24,26 @@ class PhotoBooth:
         compositions_dir: str = "./compositions",
         camera_type: str = "gphoto",
         event_log_path: str = "/dev/null",
+        *,
+        show_compositions: bool = False,
+        seconds_before_session: int = 5,
+        seconds_between_captures: int = 1,
+        composition_yaml_hot_reload: bool = False,
     ):
         self._logger = logging.getLogger("photobooth")
 
         self.captures_dir = captures_dir
         self.compositions_dir = compositions_dir
+        self.show_compositions = show_compositions
 
         os.makedirs(self.captures_dir, exist_ok=True)
         os.makedirs(self.compositions_dir, exist_ok=True)
 
         self.session_count = len(os.listdir(compositions_dir))
-        self.seconds_before_session = 5
-        self.seconds_between_captures = 1
+        self.seconds_before_session = seconds_before_session
+        self.seconds_between_captures = seconds_between_captures
+        self.composition_yaml_path = composition_yaml_path
+        self.composition_yaml_hot_reload = composition_yaml_hot_reload
         self.composition_spec = composition_yaml_path and loader.load_yaml(
             composition_yaml_path
         )
@@ -110,13 +119,22 @@ class PhotoBooth:
             pics.append(self.camera.take_picture())
 
         if self.composition_spec is not None:
+            if self.composition_yaml_hot_reload:
+                self.composition_spec = loader.load_yaml(self.composition_yaml_path)
+
             self.state = PhotoBoothState.COMPOSING
             comp_renderer = renderer.PILRenderer(
                 self.composition_spec, captures_path=pics
             )
             composition_path = self.get_composition_path()
             composition = comp_renderer.render()
-            composition.save(composition_path)
+            self.save_composition(composition, composition_path)
             self.event_log.notify("COMPOSITION_CREATED", {"path": composition_path})
 
         self.state = PhotoBoothState.IDLE
+
+    def save_composition(self, composition: Image, path: str) -> None:
+        if self.show_compositions:
+            composition.show()
+        else:
+            composition.save(path)

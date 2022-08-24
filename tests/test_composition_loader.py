@@ -38,6 +38,7 @@ def test_composition_rendering():
                     "kind": "capture",
                     "box": Box(0.1, 0.1, 0.35, 0.45),
                     "fit": "fill",
+                    "rotation": 30.0,
                 }
             ),
         ],

@@ -44,6 +44,7 @@ class Layer:
     background_color: str = "white"
     background_opacity: Union[int, float] = 0
     opacity: Union[int, float] = 255
+    rotation: float = 0  # In degrees
 
     def __post_init__(self):
         if isinstance(self.background_opacity, float):

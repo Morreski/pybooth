@@ -12,6 +12,7 @@ class Config:
     original_captures_folder_name: str
 
     composition_yaml_path: str
+    composition_test_mode: bool
     events_log_path: str
 
     camera_type: str
@@ -54,6 +55,8 @@ class Config:
             composition_yaml_path=args.composition
             or cfg.get(composition, "yaml_path", fallback="")
             or None,
+            composition_test_mode=args.debug
+            or cfg.getboolean("General", "debug", fallback=False),
             camera_type=args.camera_type
             or cfg.get("Camera", "engine", fallback="gphoto"),
             events_log_path=args.events_log_path
@@ -108,5 +111,10 @@ def _parse_program_args():
         metavar="PORT",
         type=int,
         help="Start webserver on specified port",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Debug mode: will show compositions after rendering and will not save them on disk",
     )
     return parser.parse_args()

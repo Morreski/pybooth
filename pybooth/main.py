@@ -45,12 +45,22 @@ def main(cfg: Config):
         server_process = multiprocessing.Process(target=server.start)
         server_process.start()
 
+    booth_kwargs = {}
+    if cfg.composition_test_mode:
+        booth_kwargs = {
+            "show_compositions": True,
+            "seconds_before_session": 0,
+            "seconds_between_captures": 0,
+            "composition_yaml_hot_reload": True,
+        }
+
     booth = PhotoBooth(
         cfg.composition_yaml_path,
         cfg.captures_dest_dir,
         cfg.compositions_dest_dir,
         cfg.camera_type,
         cfg.events_log_path,
+        **booth_kwargs,
     )
 
     logger.info("Waiting for capture trigger...")
