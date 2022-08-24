@@ -4,7 +4,7 @@ base_dir=./booth
 #compositions_folder_name=compositions
 
 [Composition.default]
-background_image=
+yaml_path=
 
 [Camera]
 # Engine must be one of: 'gphoto', 'dummy'
