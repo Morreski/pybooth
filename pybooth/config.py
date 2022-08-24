@@ -3,9 +3,10 @@ import argparse
 import dataclasses
 import configparser
 import warnings
+from typing import List, Tuple
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Config:
     output_dir: str
     compositions_folder_name: str
@@ -20,6 +21,8 @@ class Config:
     webserver_enabled: bool
     webserver_port: int
 
+    connectors: List[Tuple[str, dict]]  # List of connector_name, connector_config
+
     @staticmethod
     def get_composition_section_from_ini_config(cfg: configparser.ConfigParser):
         compositions_sections = [
@@ -31,6 +34,16 @@ class Config:
             if len(compositions_sections) > 1:
                 warnings.warn("Multiple compositions are not supported. ...yet !")
         return composition
+
+    @staticmethod
+    def get_connectors_from_ini_config(cfg: configparser.ConfigParser):
+        connectors_sections = [
+            s
+            for s in cfg.sections()
+            if s.startswith("Connector.")
+            and cfg.getboolean(s, "enabled", fallback=False)
+        ]
+        return [(s.split(".")[1], dict(cfg.items(s))) for s in connectors_sections]
 
     @classmethod
     def from_program_args(cls):
@@ -64,6 +77,7 @@ class Config:
             webserver_enabled=args.web is not None
             or cfg.getboolean("Webserver", "enabled", fallback=False),
             webserver_port=args.web or cfg.getint("Webserver", "port", fallback=1502),
+            connectors=cls.get_connectors_from_ini_config(cfg),
         )
 
     @property

@@ -16,3 +16,10 @@ log_path=/tmp/booth_event.log
 [Webserver]
 enabled=false
 #port=1502
+
+[Connector.memento]
+enabled = false
+#auth_token=
+#photospace_orga_unit_id=
+#apply_tags=comma,separated list,of tags
+#medias_are_private=

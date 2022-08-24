@@ -1,16 +1,27 @@
 import logging
 import functools
 import multiprocessing
+import signal
+from typing import List
 
 from pynput.keyboard import Listener, Key
+import dacite
 
 from config import Config
 from web import WebServer
 from booth import PhotoBooth
+from connectors import MementoConnector
+
+__KEEP_RUNNING = False
 
 
 def on_press(key):
-    pass
+    return __KEEP_RUNNING
+
+
+def _stop(*args):
+    global __KEEP_RUNNING
+    __KEEP_RUNNING = False
 
 
 def on_release(listener: Listener, booth: PhotoBooth, key):
@@ -18,6 +29,7 @@ def on_release(listener: Listener, booth: PhotoBooth, key):
         return
     booth.start_session()
     listener.stop()  # Ignore keypress that occured while taking pictures
+    return __KEEP_RUNNING
 
 
 def init_logger(args):
@@ -32,7 +44,38 @@ def init_logger(args):
     return root_logger
 
 
+def start_connectors(cfg: Config) -> List[multiprocessing.Process]:
+    CONNECTOR_MAPPING = {"memento": MementoConnector}
+
+    def _get_cls(name: str):
+        return CONNECTOR_MAPPING[name]
+
+    connectors = (
+        _get_cls(name)(
+            cfg,
+            dacite.from_dict(
+                data_class=_get_cls(name).CONFIG_CLS,
+                data=data,
+                config=dacite.Config(cast=[int]),
+            ),
+        )
+        for name, data in cfg.connectors
+    )
+    processes = [multiprocessing.Process(target=c.start) for c in connectors]
+    for p in processes:
+        p.start()
+    return processes
+
+
+def setup_signals():
+    global __KEEP_RUNNING
+    __KEEP_RUNNING = True
+    signal.signal(signal.SIGTERM, _stop)
+    signal.signal(signal.SIGINT, _stop)
+
+
 def main(cfg: Config):
+    setup_signals()
     logger = init_logger(cfg)
 
     server_process = None
@@ -44,6 +87,9 @@ def main(cfg: Config):
         )
         server_process = multiprocessing.Process(target=server.start)
         server_process.start()
+
+    logger.info("Starting connectors")
+    connector_processes = start_connectors(cfg)
 
     booth_kwargs = {}
     if cfg.composition_test_mode:
@@ -65,13 +111,20 @@ def main(cfg: Config):
 
     logger.info("Waiting for capture trigger...")
 
-    while True:
+    while __KEEP_RUNNING:
         listener = Listener(on_press=on_press)
         listener.on_release = functools.partial(on_release, listener, booth)
         listener.start()
         listener.join()
 
+    logger.info("Shutting down processes...")
+
+    for conn_proc in connector_processes:
+        conn_proc.terminate()
+        conn_proc.join()
+
     if server_process is not None:
+        server_process.terminate()
         server_process.join()
 
 
