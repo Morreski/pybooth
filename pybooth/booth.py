@@ -3,7 +3,9 @@ import os
 import time
 import logging
 from typing import Optional
+from datetime import datetime
 
+import piexif
 from PIL import Image
 from camera import GphotoCamera, DummyCamera
 from compositions import loader, renderer
@@ -133,8 +135,21 @@ class PhotoBooth:
 
         self.state = PhotoBoothState.IDLE
 
+    def get_exif(self, img: Image) -> bytes:
+        # TODO: Add more
+        now = datetime.now()
+        exifdct = {
+            "Exif": {
+                piexif.ExifIFD.DateTimeOriginal: now.isoformat()[:19]
+                .replace("T", " ")
+                .replace("-", ":")
+            }
+        }
+        return piexif.dump(exifdct)
+
     def save_composition(self, composition: Image, path: str) -> None:
         if self.show_compositions:
             composition.show()
         else:
-            composition.save(path)
+            exif = self.get_exif(composition)
+            composition.save(path, exif=exif)
