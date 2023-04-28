@@ -29,7 +29,7 @@ class GphotoCamera:
             while self.__keep_running:
                 try:
                     return f(self, *args, **kwargs)
-                except gp.GPhoto2Error:
+                except Exception:
                     self.event_log.notify("CAMERA_DISCONNECTED", {})
                     self.connect()
 

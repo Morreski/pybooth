@@ -30,8 +30,8 @@ class PhotoBooth:
         event_log_path: str = "/dev/null",
         *,
         show_compositions: bool = False,
-        seconds_before_session: int = 5,
-        seconds_between_captures: int = 1,
+        seconds_before_session: int = 0,
+        seconds_between_captures: int = 2,
         composition_yaml_hot_reload: bool = False,
     ):
         self._logger = logging.getLogger("photobooth")
