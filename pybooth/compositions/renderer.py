@@ -80,9 +80,9 @@ class PILRenderer:
         )
 
     def _get_coords_px(self, x: float, y: float):
-        return math.floor(x * self._spec.canvas.width), math.floor(
-            y * self._spec.canvas.height
-        )
+        return math.floor(
+            x * (self._spec.canvas.width / self._spec.canvas.virtual_width)
+        ), math.floor(y * (self._spec.canvas.height / self._spec.canvas.virtual_height))
 
     def _compute_fit_contain(self, box: PxBox, obj: Image):
         b_w, b_h = box.width, box.height

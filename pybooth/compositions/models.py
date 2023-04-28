@@ -35,6 +35,8 @@ class Canvas:
     width: int
     height: int
     color: str
+    virtual_width: int = 1
+    virtual_height: int = 1
 
 
 @dataclasses.dataclass

@@ -2,6 +2,7 @@ import enum
 import os
 import time
 import logging
+import subprocess
 from typing import Optional
 from datetime import datetime
 
@@ -149,7 +150,9 @@ class PhotoBooth:
 
     def save_composition(self, composition: Image, path: str) -> None:
         if self.show_compositions:
-            composition.show()
+            exif = self.get_exif(composition)
+            composition.save("/tmp/preview.jpg", exif=exif)
+            subprocess.call(["xdg-open", "/tmp/preview.jpg"])
         else:
             exif = self.get_exif(composition)
             composition.save(path, exif=exif)
