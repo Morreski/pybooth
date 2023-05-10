@@ -17,7 +17,7 @@ class DummyCamera:
         self.jpgs = [
             os.path.join(self.out_dir, fp)
             for fp in os.listdir(self.out_dir)
-            if os.path.splitext(fp)[1].lower() == ".jpg"
+            if os.path.splitext(fp)[1].lower() in (".jpg", ".jpeg")
         ]
         self.jpg_iterator = itertools.cycle(self.jpgs)
         self.event_log = event_log
