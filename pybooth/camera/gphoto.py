@@ -54,7 +54,10 @@ class GphotoCamera:
                 time.sleep(2)
 
     def reset(self):
-        self.camera.exit()
+        try:
+            self.camera.exit()
+        except gp.GPhoto2Error:
+            pass
         self.camera = gp.Camera()
 
     @auto_reconnect

@@ -131,7 +131,10 @@ function setCameraState({connected}) {
         overlay.classList.add("error-overlay", "disconnected-camera");
         const h1 = document.createElement("h1");
         h1.innerText = "CAMERA DISCONNECTED";
+        const h2 = document.createElement("h2");
+        h2.innerText = "TURN IT OFF & ON";
         overlay.appendChild(h1);
+        overlay.appendChild(h2);
         body.appendChild(overlay);
     } else {
         deleteElementsByClassName("disconnected-camera");
