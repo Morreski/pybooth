@@ -8,9 +8,10 @@ from datetime import datetime
 
 import piexif
 from PIL import Image
-from camera import GphotoCamera, DummyCamera
-from compositions import loader, renderer
-from event_log import EventLog
+
+from .camera import GphotoCamera, DummyCamera
+from .compositions import loader, renderer
+from .event_log import EventLog
 
 
 class PhotoBoothState(enum.Enum):
@@ -62,6 +63,12 @@ class PhotoBooth:
         self.camera = self.get_camera_backend(camera_type)(
             self.event_log, self.captures_dir
         )
+
+    def start(self):
+        self.camera.connect()
+
+    def stop(self):
+        self.camera.stop()
 
     def get_camera_backend(self, name: str):
         camera_mapping = {

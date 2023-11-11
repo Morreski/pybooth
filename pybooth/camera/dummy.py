@@ -21,7 +21,12 @@ class DummyCamera:
         ]
         self.jpg_iterator = itertools.cycle(self.jpgs)
         self.event_log = event_log
+
+    def connect(self):
         self.fake_connect()
+
+    def stop(self):
+        pass
 
     def take_picture(self) -> str:
         pic_path = next(self.jpg_iterator)

@@ -7,12 +7,13 @@ from typing import List
 from pynput.keyboard import Listener, Key
 import dacite
 
-from config import Config
-from web import WebServer
-from booth import PhotoBooth
-from connectors import MementoConnector
+from .config import Config
+from .web import WebServer
+from .booth import PhotoBooth
+from .connectors import MementoConnector
 
 __KEEP_RUNNING = False
+__RUNNING_BOOTH = None
 
 
 def on_press(key):
@@ -21,7 +22,11 @@ def on_press(key):
 
 def _stop(*args):
     global __KEEP_RUNNING
+    global __RUNNING_BOOTH
     __KEEP_RUNNING = False
+    if __RUNNING_BOOTH is not None:
+        __RUNNING_BOOTH.stop()
+        __RUNNING_BOOTH = None
 
 
 def on_release(listener: Listener, booth: PhotoBooth, key):
@@ -108,6 +113,9 @@ def main(cfg: Config):
         cfg.events_log_path,
         **booth_kwargs,
     )
+    global __RUNNING_BOOTH
+    __RUNNING_BOOTH = booth
+    booth.start()
 
     logger.info("Waiting for capture trigger...")
 

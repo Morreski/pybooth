@@ -21,12 +21,12 @@ class GphotoCamera:
         self.photo_count = len(os.listdir(out_dir))
         self._logger = logging.getLogger("gphoto")
         self.event_log = event_log
-        self.connect()
+        self.__keep_running = True
 
     def auto_reconnect(f):
         @functools.wraps(f)
         def _wrapper(self, *args, **kwargs):
-            while True:
+            while self.__keep_running:
                 try:
                     return f(self, *args, **kwargs)
                 except gp.GPhoto2Error:
@@ -35,8 +35,12 @@ class GphotoCamera:
 
         return _wrapper
 
+    def stop(self):
+        self.__keep_running = False
+        self.camera.exit()
+
     def connect(self):
-        while True:
+        while self.__keep_running:
             try:
                 self.camera.init()
                 self._logger.info("Camera connected")
