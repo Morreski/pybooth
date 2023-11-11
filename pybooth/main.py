@@ -132,7 +132,7 @@ def main(cfg: Config):
         conn_proc.join()
 
     if server_process is not None:
-        server_process.terminate()
+        server_process.kill()
         server_process.join()
 
 
